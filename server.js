@@ -30,7 +30,7 @@ app.post('/create-pix', async (req, res) => {
       {
         httpsAgent: new https.Agent({
           cert: fs.readFileSync(process.env.CERT_PATH),
-          key: fs.readFileSync(process.env.CERT_PATH), // mesmo arquivo, pois o .pem inclui a chave privada
+          key: fs.readFileSync(process.env.CERT_PATH), // o .pem inclui a chave privada
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -42,12 +42,14 @@ app.post('/create-pix', async (req, res) => {
 
     res.json(response.data);
   } catch (err) {
-    console.error(err?.response?.data || err.message);
-    res.status(500).send('Erro ao gerar Pix');
+    console.error("❌ Erro detalhado:", err?.response?.data || err.message || err);
+    res.status(500).json({
+      error: err?.response?.data || err.message || "Erro interno ao gerar Pix"
+    });
   }
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`API Pix rodando na porta ${port}`);
+  console.log(`✅ API Pix rodando na porta ${port}`);
 });
