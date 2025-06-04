@@ -2,12 +2,20 @@ app.post('/create-pix', async (req, res) => {
   try {
     const { amount, orderId } = req.body;
 
-    // 🔍 Verificar caminho e conteúdo do certificado
-    console.log("Cert path:", process.env.CERT_PATH);
-    console.log("Cert conteúdo:", fs.readFileSync(process.env.CERT_PATH).toString());
+    // ✅ Verificando caminho e leitura do .pem com segurança
+    const certPath = process.env.CERT_PATH;
+    let certContent = '';
+    try {
+      certContent = fs.readFileSync(certPath).toString();
+      console.log("✅ Cert path:", certPath);
+      console.log("📄 Cert conteúdo (início):", certContent.slice(0, 100), '...');
+    } catch (readErr) {
+      console.error("❌ Erro ao ler o certificado .pem:", readErr.message);
+      return res.status(500).json({ error: 'Erro ao ler o certificado. Verifique o caminho ou o arquivo.' });
+    }
 
     const response = await axios.post(
-      'https://api.efipay.com.br/v1/charge/pix', // ✅ endpoint correto
+      'https://api.efipay.com.br/v1/charge/pix',
       {
         items: [
           {
@@ -24,8 +32,8 @@ app.post('/create-pix', async (req, res) => {
       },
       {
         httpsAgent: new https.Agent({
-          cert: fs.readFileSync(process.env.CERT_PATH),
-          key: fs.readFileSync(process.env.CERT_PATH) // pem com chave privada também
+          cert: certContent,
+          key: certContent // O .pem contém a chave privada + certificado
         }),
         headers: {
           'Content-Type': 'application/json',
