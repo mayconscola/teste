@@ -4,6 +4,7 @@ import https from 'https';
 import axios from 'axios';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
@@ -14,7 +15,7 @@ app.post('/create-pix', async (req, res) => {
     const { amount, orderId } = req.body;
 
     const response = await axios.post(
-      'https://api.efipay.com.br/v1/charge/pix',
+      'https://api.efipay.com.br/v1/charge/pix', // ENDPOINT CORRETO
       {
         items: [
           {
@@ -25,14 +26,14 @@ app.post('/create-pix', async (req, res) => {
         ],
         payment: {
           pix: {
-            expire_at: 3600
+            expire_at: 3600 // 1 hora
           }
         }
       },
       {
         httpsAgent: new https.Agent({
-          cert: fs.readFileSync(process.env.CERT_PATH),
-          key: fs.readFileSync(process.env.CERT_PATH) // .pem inclui a chave privada
+          cert: fs.readFileSync(process.env.CERT_PATH), // Exemplo: ./certs/producao-682910-SAAS.pem
+          key: fs.readFileSync(process.env.CERT_PATH)   // Mesmo arquivo .pem (inclui cert + key)
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +43,7 @@ app.post('/create-pix', async (req, res) => {
       }
     );
 
-    res.json(response.data);
+    res.json(response.data); // Sucesso
   } catch (err) {
     console.error("❌ Erro ao gerar Pix:", err?.response?.data || err.message || err);
     res.status(500).json({
